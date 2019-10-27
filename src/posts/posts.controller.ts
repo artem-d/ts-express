@@ -24,14 +24,13 @@ class PostsController implements IController {
       .all(`${this.path}/*`, authMiddleware)
       .patch(`${this.path}/:id`, validationMiddleware(CreatePostDto, true), this.modifyPost)
       .delete(`${this.path}/:id`, this.deletePost)
-      .post(this.path, validationMiddleware(CreatePostDto), this.createPost);
+      .post(this.path, authMiddleware, validationMiddleware(CreatePostDto), this.createPost);
   }
 
-  private getAllPosts = (req: express.Request, res: express.Response) => {
-    this.post.find()
-      .then((posts) => {
-        res.send(posts);
-      });
+  private getAllPosts = async (req: express.Request, res: express.Response) => {
+    const posts = await this.post.find()
+      .populate('author', '-password');
+    res.send(posts);
   }
 
   private getPostById = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -63,12 +62,11 @@ class PostsController implements IController {
     const postData: IPost = req.body;
     const createdPost = new this.post({
       ...postData,
-      authorId: req.user._id,
+      author: req.user._id,
     });
-    createdPost.save()
-      .then((savedPost) => {
-        res.send(savedPost);
-      });
+    const post = await createdPost.save();
+    await post.populate('author', '-password').execPopulate();
+    res.send(post);
   }
 
   private deletePost = (req: express.Request, res: express.Response, next: express.NextFunction) => {
