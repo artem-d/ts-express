@@ -36,6 +36,7 @@ class ReportController implements Controller {
                                 name: '$name',
                             },
                         },
+                        // tslint:disable-next-line: object-literal-sort-keys
                         count: {
                             $sum: 1,
                         },
@@ -45,6 +46,7 @@ class ReportController implements Controller {
                     $lookup: {
                         from: 'posts',
                         localField: 'users._id',
+                        // tslint:disable-next-line: object-literal-sort-keys
                         foreignField: 'author',
                         as: 'articles',
                     },
